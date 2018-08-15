@@ -1,0 +1,17 @@
+extends layout
+
+block header
+
+block content
+    form(method='post' action='signup')
+        div.form-group
+            label(for='email') Email
+            input.form-control(type='text' id='email' placeholder='email' name='email')
+        div.form-group
+            label(for='password') Password
+            input.form-control(type='password' id='password', placeholder='password')
+        // TODO: Make Image Upload Button & Image Upload function
+        div.form-group
+            input.form-control(type='submit' value='submit')
+
+block footer
