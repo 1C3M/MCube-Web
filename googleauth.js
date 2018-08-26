@@ -15,7 +15,7 @@ class GoogleAuth {
     constructor () {
         this.keys = { redirect_uris: [""]};
 
-        if (fs.existsSync(server_key_path)) this.keys = JSON.parse(fs.readFileSync(server_key_path, "utf8")).installed;
+        if (fs.existsSync(server_key_path)) this.keys = JSON.parse(fs.readFileSync(server_key_path, "utf8")).web;
         else logger.error("error server key does not exists");
 
         this.oAuth2Client = new google.auth.OAuth2(
