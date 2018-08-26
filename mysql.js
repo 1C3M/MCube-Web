@@ -1,7 +1,8 @@
 const mysql = require("mysql2/promise");
 const fs = require("fs");
+const path = require("path");
 
-const configfile = "config.json";
+const configfile = path.join(__dirname, "config.json");
 if (!fs.existsSync(configfile)){
     throw "File Does Not Exist";
 }
@@ -81,7 +82,8 @@ class MCubeDB {
     async getGoogleTokenFromUserID ( user_id="" ) {
         const select_query = "SELECT google FROM tokens WHERE user_id=?";
         try {
-            return (await this.connection.execute(select_query, [user_id]))[0][0].google;
+            let data = await this.connection.execute(select_query, [user_id]);
+            return await data[0][0].google;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
@@ -89,10 +91,10 @@ class MCubeDB {
         }
     }
 
-    async insertUser ( user_id="", pw="", name="" ) {
-        const insert_query = "INSERT INTO user(user_id, pw, name) VALUES(?, ?, ?)";
+    async insertUser ( user_id="", pw="", name="" , email="") {
+        const insert_query = "INSERT INTO user(user_id, pw, name, email) VALUES(?, ?, ?, ?)";
         try {
-            return await this.connection.execute(insert_query, [user_id, pw, name]);
+            return await this.connection.execute(insert_query, [user_id, pw, name, email]);
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
@@ -124,9 +126,9 @@ class MCubeDB {
         }
     }
 
-    async insertData ( user_id="", pw="", name="", filename="" ) {
+    async insertData ( user_id="", pw="", name="", email="",filename="" ) {
         try {
-            const resultUser = await this.insertUser(user_id, pw, name);
+            const resultUser = await this.insertUser(user_id, pw, name, email);
             const resultImage = await this.insertImage(user_id, filename);
             return [resultUser, resultImage];
         } catch (err) {

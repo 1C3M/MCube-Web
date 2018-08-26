@@ -4,7 +4,7 @@ block header
 
 block content
     form(action='/signup' method='post' enctype='multipart/form-data')
-        label(for='ID') Email
+        label(for='ID') userID 
         input.form-control(type='text' id='userID' placeholder='ID' name='userID')
         br
         label(for='password') Password
@@ -12,6 +12,9 @@ block content
         br
         label(for='Name') Name
         input.form-control(type='text' id='name', placeholder='name' name='name')
+        br
+        label(for='Email') Email
+        input.form-control(type='text' id='email', placeholder='email' name='email')
         br
         input.form-control(type='file', name='images' multiple)
         input.form-control(type='submit' value='submit')

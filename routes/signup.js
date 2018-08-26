@@ -35,7 +35,7 @@ router.post("/", upload.array("images", 12), (req, res) => {
         db.connect();
     }
     try {
-        db.insertUser(req.body.userID, req.body.password, req.body.name);
+        db.insertUser(req.body.userID, req.body.password, req.body.name, req.body.email);
         req.files.forEach( file => {
             logger.info([req.body.userid, file.filename]);
             db.insertImage(req.body.userid, file.filename);
