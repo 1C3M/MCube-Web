@@ -1,11 +1,14 @@
 const mysql = require("mysql2/promise");
+const fs = require("fs");
 
-const connection_data = {
-    host: "localhost",
-    user: "mcube",
-    password:"mcube",
-    database: "mcube"
-};
+const configfile = "config.json";
+if (!fs.existsSync(configfile)){
+    throw "File Does Not Exist";
+}
+
+const configdata = JSON.parse(fs.readFileSync(configfile, "utf-8"));
+const connection_data = configdata.database;
+
 let StatusEnum = {
     CREATED: 0,
     REAEY: 1,
@@ -53,41 +56,6 @@ class MCubeDB {
         }
     }
 
-    async buildTable () {
-        const build_query = [
-            "CREATE TABLE IF NOT EXISTS user (\
-                user_id VARCHAR(20) NOT NULL, \
-                name VARCHAR(50) NOT NULL,\
-                pw VARCHAR(255) NOT NULL,\
-                PRIMARY KEY(user_id) \
-            )",
-            "CREATE TABLE IF NOT EXISTS images (\
-                uuid BINARY(16) NOT NULL, \
-                user_id VARCHAR(20) NOT NULL, \
-                filename VARCHAR(255), \
-                PRIMARY KEY(uuid), \
-                FOREIGN KEY(user_id) REFERENCES user(user_id) \
-            )",
-            "CREATE TABLE IF NOT EXISTS tokens (\
-                uuid BINARY(16) NOT NULL, \
-                user_id VARCHAR(20) NOT NULL, \
-                google VARCHAR(1000) NOT NULL, \
-                PRIMARY KEY(uuid), \
-                FOREIGN KEY(user_id) REFERENCES user(user_id)\
-            )",
-        ];
-        try {
-            let result = [];
-            for(let i = 0; i < build_query.length; i++)
-                result.push(await this.connection.execute(build_query[i]));
-            return await result;
-        } catch (err) {
-            this.status = StatusEnum.ERROR;
-            this.message = err;
-            return err;
-        }
-    }
-
     async getImagesFromUserId ( user_id="" ) {
         const select_query = "SELECT data FROM images WHERE user_id=?";
         try {
@@ -113,7 +81,7 @@ class MCubeDB {
     async getGoogleTokenFromUserID ( user_id="" ) {
         const select_query = "SELECT google FROM tokens WHERE user_id=?";
         try {
-            return await this.connection.execute(select_query, [user_id]);
+            return (await this.connection.execute(select_query, [user_id]))[0][0].google;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
@@ -168,16 +136,5 @@ class MCubeDB {
         }
     }
 }
-/*
-async function build() {
-    let testSQLConnect = new MCubeDB();
-    let result= [];
-    result.push(await testSQLConnect.connect());
-    result.push(await testSQLConnect.buildTable());
-    result.push(await testSQLConnect.destory());
-    return await result;
-}*/
-//build().then(console.log);
-
 
 module.exports = { MCubeDB, StatusEnum };

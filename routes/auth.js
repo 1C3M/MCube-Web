@@ -14,12 +14,15 @@ router.get("/", (req, res) => {
     }
     userAuth.getToken(req.query.code)
         .then( token => {
-            logger.info(JSON.stringify(token));
-            db.insertToken(req.session.user_id, JSON.stringify(token));
+            logger.info(req.session);
+            if (token["refresh_token"] === undefined) throw "no refresh";
+            db.insertToken(req.session.userid, JSON.stringify(token)).then(()=>{
+                res.send("Success");
+            });
         }).catch( err => {
-            logger.error("auth.js 19"+err);
+            logger.error(err);
+            res.send("Fail");
         });
-    res.send("Success");
 });
 
 router.post("/", (req, res) =>{
