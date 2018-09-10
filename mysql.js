@@ -12,7 +12,7 @@ const connection_data = configdata.database;
 
 let StatusEnum = {
     CREATED: 0,
-    REAEY: 1,
+    READY: 1,
     ERROR: 2,
     CLOSED: 3,
 };
@@ -26,7 +26,7 @@ class MCubeDB {
     async connect () {
         try {
             this.connection = await mysql.createConnection(connection_data);
-            this.status = StatusEnum.REAEY;
+            this.status = StatusEnum.READY;
             return this.conection;
         } catch (err) {
             this.status = StatusEnum.ERROR;

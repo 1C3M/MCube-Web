@@ -16,7 +16,7 @@ router.get("/", (req, res) => {
         .then( token => {
             logger.info(req.session);
             if (token["refresh_token"] === undefined) throw "no refresh";
-            db.insertToken(req.session.userid, JSON.stringify(token)).then(()=>{
+            db.insertToken(req.session.userID, JSON.stringify(token)).then(()=>{
                 res.send("Success");
             });
         }).catch( err => {

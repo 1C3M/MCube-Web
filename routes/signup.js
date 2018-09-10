@@ -30,15 +30,15 @@ router.get("/", (req, res) =>{
 });
 
 router.post("/", upload.array("images", 12), (req, res) => {
-    req.session.userid = req.body.userid;
-    if (db.status !== StatusEnum.REAEY) {
+    req.session.userID = req.body.userID;
+    if (db.status !== StatusEnum.READY) {
         db.connect();
     }
     try {
         db.insertUser(req.body.userID, req.body.password, req.body.name, req.body.email);
         req.files.forEach( file => {
-            logger.info([req.body.userid, file.filename]);
-            db.insertImage(req.body.userid, file.filename);
+            logger.info([req.body.userID, file.filename]);
+            db.insertImage(req.body.userID, file.filename);
         });
     } catch (err) {
         logger.error(err);
