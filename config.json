@@ -1,8 +1,18 @@
 {
-    "database":{
-        "host": "localhost",
-        "user": "mcube",
-        "password":"mcube",
-        "database": "mcube"
-    }
+  "database": {
+    "host": "localhost",
+    "user": "mcube",
+    "password":"mcube",
+    "database": "mcube"
+  },
+  "images": {
+    "path": "./images"
+  },
+  "faceRec": {
+    "npyPath" : "../face_rec/encodings",
+    "scriptPath" : "../face_rec",
+    "recognizePy" : "recognize.py",
+    "encodingPy" : "encoding.py",
+    "pythonPath" : "/usr/bin/python3"
+  }
 }
