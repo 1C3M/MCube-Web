@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const PythonShell = require("python-shell");
 
-const { MCubeDB, StatusEnum } = require("../mysql.js");
+const { MCubedb, StatusEnum } = require("../mysql.js");
 const logger = require("../logger.js");
 const {GoogleAuth, scopes} = require("../googleauth.js");
 
@@ -37,8 +37,6 @@ let upload = multer({
     storage: storage
 });
 
-const db = new MCubeDB();
-db.connect();
 
 router.get("/", (req, res) =>{
     res.render("signup", {title:"signup"});
@@ -46,15 +44,12 @@ router.get("/", (req, res) =>{
 
 router.post("/", upload.array("images", 12), (req, res) => {
     req.session.userID = req.body.userID;
-    if (db.status !== StatusEnum.READY) {
-        db.connect();
-    }
     try {
-        db.insertUser(req.body.userID, req.body.password, req.body.name, req.body.email);
+        MCubedb.insertUser(req.body.userID, req.body.password, req.body.name, req.body.email);
         req.files.forEach( file => {
             logger.info([req.body.userID, file.filename]);
 
-            db.insertImage(req.body.userID, file.filename).then( () => {
+            MCubedb.insertImage(req.body.userID, file.filename).then( () => {
                 let filepath = path.join(imagesPath, file.filename);
                 let pyshell = new PythonShell(encodingPy, {pythonPath:pythonPath, scriptPath:scriptPath});
 

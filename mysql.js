@@ -1,14 +1,20 @@
-const mysql = require("mysql2/promise");
+const Sequelize = require("sequelize");
 const fs = require("fs");
 const path = require("path");
 
-const configfile = path.join(__dirname, "config.json");
+const configfile = "config.json";
 if (!fs.existsSync(configfile)){
     throw "File Does Not Exist";
 }
 
 const configdata = JSON.parse(fs.readFileSync(configfile, "utf-8"));
 const connection_data = configdata.database;
+const database = connection_data.database;
+const username = connection_data.username;
+const password = connection_data.password;
+const sequelize = new Sequelize(database, username, password, {dialect: "mysql"});
+
+
 
 let StatusEnum = {
     CREATED: 0,
@@ -19,59 +25,31 @@ let StatusEnum = {
 
 class MCubeDB {
     constructor () {
+        this.User = sequelize.define("users", {
+            user_id: Sequelize.STRING,
+            pw : Sequelize.STRING,
+            name : Sequelize.STRING,
+            email : Sequelize.STRING
+        });
+
+        this.Image = sequelize.define("images", {
+            filename : Sequelize.STRING,
+            user_id: Sequelize.STRING
+        });
+
+        this.Token = sequelize.define("tokens", {
+            google: Sequelize.TEXT,
+            mm: Sequelize.STRING,
+            user_id: Sequelize.STRING
+        });
+
         this.status = StatusEnum.CREATED;
         this.message = "created";
     }
-
-    async connect () {
+    async getUserIDFromMMToken( token="" ) {
         try {
-            this.connection = await mysql.createConnection(connection_data);
-            this.status = StatusEnum.READY;
-            return this.conection;
-        } catch (err) {
-            this.status = StatusEnum.ERROR;
-            this.message = err;
-            return err;
-        }
-    }
-
-    async destory () {
-        try {
-            this.connection.end();
-            this.status = StatusEnum.CLOSED;
-            return 1;
-        } catch (err) {
-            this.status = StatusEnum.ERROR;
-            this.message = err;
-            return err;
-        }
-    }
-
-    async ping () {
-        try {
-            return await this.connection.excute("SELECT 1");
-        } catch (err) {
-            this.status = StatusEnum.ERROR;
-            this.message = err;
-            return err;
-        }
-    }
-
-    async getImagesFromUserId ( user_id="" ) {
-        const select_query = "SELECT data FROM images WHERE user_id=?";
-        try {
-            return await this.connection.execute(select_query, [user_id]);
-        } catch (err) {
-            this.status = StatusEnum.ERROR;
-            this.message = err;
-            return err;
-        }
-    }
-
-    async getUserNameFromUserId ( user_id="" ) {
-        const select_query = "SELECT name FROM user WHERE user_id=?";
-        try {
-            return await this.connection.execute(select_query, [user_id]);
+            let data = await this.Token.findOne({where: {mm: token}});
+            return await data.user_id;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
@@ -80,10 +58,9 @@ class MCubeDB {
     }
 
     async getGoogleTokenFromUserID ( user_id="" ) {
-        const select_query = "SELECT google FROM tokens WHERE user_id=?";
         try {
-            let data = await this.connection.execute(select_query, [user_id]);
-            return await data[0][0].google;
+            let data = await this.Token.findOne({where: {user_id: user_id}});
+            return await data.google;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
@@ -92,21 +69,31 @@ class MCubeDB {
     }
 
     async insertUser ( user_id="", pw="", name="" , email="") {
-        const insert_query = "INSERT INTO user(user_id, pw, name, email) VALUES(?, ?, ?, ?)";
         try {
-            return await this.connection.execute(insert_query, [user_id, pw, name, email]);
+            await this.User.create({user_id: user_id, pw: pw, name: name, email: email});
+            return await 0;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
-            return err;
+            throw err;
+        }
+    }
+
+    async updateMMToken ( user_id="", token="" ){
+        try {
+            let willBeUpdated = await this.Token.findOne({user_id : user_id});
+            await willBeUpdated.update({mm: token });
+        } catch (err) {
+            this.status = StatusEnum.ERROR;
+            this.message = err;
+            throw err;
         }
     }
 
     async insertToken ( user_id="", token="" ) {
-        const insert_query = "INSERT INTO tokens(uuid, user_id, google) \
-            VALUES(UNHEX(REPLACE(UUID(), '-', '')), ?, ?)";
         try {
-            return await this.connection.execute(insert_query, [user_id, token]);
+            await this.Token.create({user_id: user_id, google:token});
+            return 0;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
@@ -115,22 +102,9 @@ class MCubeDB {
     }
 
     async insertImage ( user_id="", filename="" ) {
-        const insert_query = "INSERT INTO images(uuid, user_id, filename) \
-            VALUES(UNHEX(REPLACE(UUID(), '-', '')), ?, ?)";
         try {
-            return await this.connection.execute(insert_query, [user_id, filename]);
-        } catch (err) {
-            this.status = StatusEnum.ERROR;
-            this.message = err;
-            return err;
-        }
-    }
-
-    async insertData ( user_id="", pw="", name="", email="",filename="" ) {
-        try {
-            const resultUser = await this.insertUser(user_id, pw, name, email);
-            const resultImage = await this.insertImage(user_id, filename);
-            return [resultUser, resultImage];
+            await this.Image.create({user_id: user_id, filename: filename});
+            return 0;
         } catch (err) {
             this.status = StatusEnum.ERROR;
             this.message = err;
@@ -139,4 +113,7 @@ class MCubeDB {
     }
 }
 
-module.exports = { MCubeDB, StatusEnum };
+let MCubedb = new MCubeDB();
+
+module.exports = { MCubedb, StatusEnum };
+

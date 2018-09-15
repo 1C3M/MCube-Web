@@ -1,7 +1,7 @@
 {
   "database": {
     "host": "localhost",
-    "user": "mcube",
+    "username": "mcube",
     "password":"mcube",
     "database": "mcube"
   },
